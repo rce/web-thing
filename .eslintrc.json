@@ -1,0 +1,23 @@
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
+    "rules": {
+        "no-console": "warn",
+        "no-undef": "warn",
+        "no-unused-vars": "warn",
+        "react/prop-types": false
+    },
+    "parserOptions": {
+        "ecmaVersion": 2017,
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "env": {
+        "browser": true,
+        "commonjs": true
+    }
+}
