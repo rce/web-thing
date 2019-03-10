@@ -13,8 +13,19 @@ const API_KEY = "82592226-3fb7-41cf-941c-7098de7d84c7"
 const client = new FaceitClient(API_KEY)
 
 const App = () => {
-    const nameInput = new Atom("somnium")
-    const selectedPlayer = new Atom("3c8c8d34-9ca7-4e22-9829-537e864d676e")
+    const selectedPlayer = new Atom("")
+
+    return (
+        <React.Fragment>
+            <Search selection={selectedPlayer} />
+            {U.ifElse(selectedPlayer,
+                <PlayerDetails selection={selectedPlayer} />,
+                <p>Select a player from search results</p>)}
+        </React.Fragment>
+    )
+}
+const Search = ({selection}) => {
+    const nameInput = new Atom("")
 
     const searchResults = nameInput
         .filter(lengthAtLeast(3))
@@ -25,38 +36,25 @@ const App = () => {
 
     const hasResults = searchResults.map(R.complement(R.isEmpty))
 
-    return (
-        <div>
-            <p>Input name: <TextInput value={nameInput} /></p>
+    return <div className="search-form">
+        <p>Input name: <TextInput value={nameInput} /></p>
 
-            {U.ifElse(hasResults,
-                <SearchResults searchResults={searchResults} selection={selectedPlayer} />,
-                <p>No results</p>)}
-
-            {U.ifElse(selectedPlayer,
-                <PlayerDetails selection={selectedPlayer} />,
-                <p>Select a player from search results</p>)}
-            
-        </div>
-    )
-}
-
-const SearchResults = ({searchResults, selection}) => {
-    return (
-        <React.Fragment>
-            Has {U.view("length", searchResults)} results
-            <ul>
-                {U.mapElemsWithIds("player_id", (x, playerId) => {
-                    const selected = selection.map(_ => _ === playerId)
-                    return (
-                        <li key={playerId} onClick={() => selection.set(playerId)}>
-                            {U.view("nickname", x)} {U.when(selected, "(selected)")}
-                        </li>
-                    )
-                }, searchResults)}
-            </ul>
-        </React.Fragment>
-    )
+        {U.ifElse(hasResults,
+            <React.Fragment>
+                Has {U.view("length", searchResults)} results
+                <ul>
+                    {U.mapElemsWithIds("player_id", (x, playerId) => {
+                        const selected = selection.map(_ => _ === playerId)
+                        return (
+                            <li key={playerId} onClick={() => selection.set(playerId)}>
+                                {U.view("nickname", x)} {U.when(selected, "(selected)")}
+                            </li>
+                        )
+                    }, searchResults)}
+                </ul>
+            </React.Fragment>,
+            <p>No results</p>)}
+    </div>
 }
 
 const PlayerDetails = ({selection}) => {
@@ -68,12 +66,12 @@ const PlayerDetails = ({selection}) => {
         return !p || (p.player_id !== s)
     })
 
-    return <React.Fragment>
+    return <div className="player-details">
         {U.ifElse(loading,
             <p>Loading...</p>,
             <div>
                 <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>
-                <img src={U.view("avatar", player)} />
+                <img className="player-avatar" src={U.view("avatar", player)} />
                 <table>
                     <tbody>
                         <tr><td>Player ID</td><td>{U.view("player_id", player)}</td></tr>
@@ -90,7 +88,7 @@ const PlayerDetails = ({selection}) => {
                 </div>
             </div>,
         )}
-    </React.Fragment>
+    </div>
 }
 
 const TextInput = ({value}) =>
