@@ -18,9 +18,11 @@ const App = () => {
   return (
     <React.Fragment>
       <Search selection={selectedPlayer} />
-      {U.ifElse(selectedPlayer,
-        <PlayerDetails selection={selectedPlayer} />,
-        <p>Select a player from search results</p>)}
+      <div className="main-content">
+        {U.ifElse(selectedPlayer,
+          <PlayerDetails selection={selectedPlayer} />,
+          <p>Select a player from search results</p>)}
+      </div>
     </React.Fragment>
   )
 }
