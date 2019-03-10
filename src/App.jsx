@@ -47,23 +47,34 @@ const Search = ({selection}) => {
 
   const hasResults = searchResults.map(R.complement(R.isEmpty))
 
-  return <div className="search-form">
-    <p>Input name: <TextInput value={nameInput} /></p>
+  const eventsToBus = bus => e => {
+    e.persist()
+    bus.push(e)
+  }
+  const keyDowns = U.bus()
+  const upsAndDowns = keyDowns.filter(e => ["ArrowDown", "ArrowUp"].includes(e.key))
+  Kefir.combine([upsAndDowns, searchResults], (e, results) => {
+    const mod = e.key === "ArrowUp" ? R.dec : R.inc
+    return idx => R.min(R.max(0, mod(idx)), results.length - 1)
+  }).onValue(func => selectedIndex.modify(func))
+
+  return <div className="search-form" onKeyDown={eventsToBus(keyDowns)} tabIndex="0">
+    <input
+      type="text"
+      value={nameInput}
+      onChange={U.getProps({value: nameInput})} />
 
     {U.ifElse(hasResults,
-      <React.Fragment>
-        Has {U.view("length", searchResults)} results
-        <ul>
-          {U.mapElemsWithIds("player_id", (x, playerId) => {
-            const selected = selection.map(_ => _ === playerId)
-            return (
-              <li key={playerId} onClick={() => selection.set(playerId)} className={U.cns(U.when(selected, "selected"))}>
-                {U.view("nickname", x)}
-              </li>
-            )
-          }, searchResults)}
-        </ul>
-      </React.Fragment>,
+      <ul>
+        {U.mapElems((x, idx) => {
+          const selected = selectedIndex.map(R.equals(idx))
+          return (
+            <li key={idx} onClick={() => selectedIndex.set(idx)} className={U.cns(U.when(selected, "selected"))}>
+              {U.view("nickname", x)}
+            </li>
+          )
+        }, searchResults)}
+      </ul>,
       <p>No results</p>)}
   </div>
 }
@@ -101,9 +112,6 @@ const PlayerDetails = ({selection}) => {
     )}
   </div>
 }
-
-const TextInput = ({value}) =>
-  <input type="text" value={value} onChange={U.getProps({value})} />
 
 const lengthAtLeast = n => R.compose(R.lte(n), R.length)
 

@@ -10,7 +10,7 @@ module.exports = class FaceitClient {
   searchPlayer(nickname) {
     return this.callApi("GET", "/search/players", {
       nickname,
-      limit: 100,
+      limit: 25,
       game: "csgo",
     })
   }

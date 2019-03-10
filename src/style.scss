@@ -18,9 +18,13 @@ body {
 
   position: fixed;
   top: 0; left: 0;
+  overflow-y: scroll;
 
-  li.selected {
-    background-color: $hilightColor;
+  li {
+    list-style-type: none;
+    &.selected {
+      background-color: $hilightColor;
+    }
   }
 }
 
