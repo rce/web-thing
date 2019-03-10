@@ -91,7 +91,7 @@ const Search = ({selection}) => {
 }
 
 const PlayerDetails = ({selection}) => {
-  const player = selection
+  const player = selection.debounce(500)
     .flatMapLatest(playerId => client.getPlayer(playerId))
     .toProperty(() => undefined)
 
