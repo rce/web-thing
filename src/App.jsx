@@ -27,7 +27,8 @@ const App = () => {
   )
 }
 const Search = ({selection}) => {
-  const nameInput = new Atom("somnium")
+  const nameInput = new Atom("")
+  const selectedIndex = new Atom(0)
 
   const searchResults = nameInput
     .filter(lengthAtLeast(3))
@@ -35,6 +36,14 @@ const Search = ({selection}) => {
     .flatMapLatest(name => client.searchPlayer(name))
     .map(R.prop("items"))
     .toProperty(() => [])
+
+  // Select first result automatically
+  searchResults.onValue(() => selectedIndex.set(0))
+
+  Kefir.combine(
+    [selectedIndex, searchResults],
+    (idx, results) => R.path([idx, "player_id"], results)
+  ).onValue(playerId => selection.set(playerId))
 
   const hasResults = searchResults.map(R.complement(R.isEmpty))
 
