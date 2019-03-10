@@ -19,6 +19,10 @@ module.exports = class FaceitClient {
     return this.callApi("GET", `/players/${playerId}`)
   }
 
+  getHistory(playerId, game) {
+    return this.callApi("GET", `/players/${playerId}/history`, {game})
+  }
+
   callApi(method, path, params) {
     const url = `${this.base}${path}?${this.mkQueryString(params)}`
     return Kefir.fromPromise(

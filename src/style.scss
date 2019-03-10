@@ -33,6 +33,17 @@ body {
   }
 }
 
+.match-history {
+  .match {
+    .home-team {
+      color: green;
+    }
+    .enemy-team {
+      color: red;
+    }
+  }
+}
+
 .main-content {
   margin-left: $sidebarWidth;
 }

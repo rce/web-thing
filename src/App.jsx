@@ -116,13 +116,44 @@ const PlayerDetails = ({selection}) => {
               <tr><td>CSGO elo</td><td>{U.view(["games", "csgo", "faceit_elo"], player)}</td></tr>)}
           </tbody>
         </table>
-        <div>
-          <h3>Raw</h3>
-          <pre>{U.stringify(player, null, 2)}</pre>
-        </div>
+
+        <MatchList playerId={U.view("player_id", player)} />
       </div>,
     )}
   </div>
+}
+
+const MatchList = ({playerId}) => {
+  const matches = playerId
+    .flatMapLatest(playerId => client.getHistory(playerId, "csgo"))
+    .map(R.prop("items"))
+    .toProperty(() => [])
+
+  return <div className="match-history">
+    <h2>Match history</h2>
+    {U.mapElemsWithIds("match_id", (match, id) =>
+      <Match key={id} playerId={playerId} match={match} />, matches)}
+  </div>
+}
+
+const Match = ({playerId, match}) => {
+  const team1 = U.view(["teams", "faction1"], match)
+  const team2 = U.view(["teams", "faction2"], match)
+
+  const TeamName = mkTeamName(playerId)
+
+  return <div className="match">
+    <p>
+      <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("match_type", match)})
+    </p>
+    <pre>{U.stringify(match, null, 2)}</pre>
+  </div>
+}
+
+const mkTeamName = playerId => ({team}) => {
+  const isHomeTeam = team => Kefir.combine([team, playerId],
+    (team, playerId) => team.players.map(R.prop("player_id")).includes(playerId))
+  return <span className={U.cns(U.ifElse(isHomeTeam(team), "home-team", "enemy-team"))}>{U.view("nickname", team)}</span>
 }
 
 const lengthAtLeast = n => R.compose(R.lte(n), R.length)
