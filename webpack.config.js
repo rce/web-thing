@@ -5,7 +5,7 @@ const CleanWebpackPlugin = require("clean-webpack-plugin")
 const merge = require("webpack-merge")
 
 const srcDir = path.resolve(__dirname, "src")
-const distDir = path.resolve(__dirname, "dist")
+const distDir = path.resolve(__dirname, "docs")
 const isLocal = env => env === "local"
 
 module.exports = env => {
