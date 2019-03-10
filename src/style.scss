@@ -20,6 +20,11 @@ body {
   top: 0; left: 0;
   overflow-y: scroll;
 
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+
   li {
     list-style-type: none;
     &.selected {

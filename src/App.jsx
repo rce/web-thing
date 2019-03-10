@@ -47,25 +47,36 @@ const Search = ({selection}) => {
 
   const hasResults = searchResults.map(R.complement(R.isEmpty))
 
-  const eventsToBus = bus => e => {
-    e.persist()
-    bus.push(e)
+  const upsAndDowns = U.bus()
+  const onKeyDown = e => {
+    if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+      e.preventDefault()
+      e.persist()
+      upsAndDowns.push(e)
+    }
   }
-  const keyDowns = U.bus()
-  const upsAndDowns = keyDowns.filter(e => ["ArrowDown", "ArrowUp"].includes(e.key))
   Kefir.combine([upsAndDowns, searchResults], (e, results) => {
     const mod = e.key === "ArrowUp" ? R.dec : R.inc
     return idx => R.min(R.max(0, mod(idx)), results.length - 1)
   }).onValue(func => selectedIndex.modify(func))
 
-  return <div className="search-form" onKeyDown={eventsToBus(keyDowns)} tabIndex="0">
+  // Reference to input to keep focus on it
+  const inputRef = new Atom()
+  inputRef.onValue(ref => ref.focus())
+
+  return <div className="search-form">
     <input
+      ref={U.set(inputRef)}
       type="text"
       value={nameInput}
+      onKeyDown={onKeyDown}
       onChange={U.getProps({value: nameInput})} />
 
     {U.ifElse(hasResults,
-      <ul>
+      <ul onMouseDown={e => {
+        e.preventDefault()
+        inputRef.get().focus()
+      }}>
         {U.mapElems((x, idx) => {
           const selected = selectedIndex.map(R.equals(idx))
           return (
@@ -84,9 +95,10 @@ const PlayerDetails = ({selection}) => {
     .flatMapLatest(playerId => client.getPlayer(playerId))
     .toProperty(() => undefined)
 
-  const loading = Kefir.combine([selection, player], (s, p) => {
-    return !p || (p.player_id !== s)
-  })
+  const loading = Kefir.combine(
+    [selection, player.map(R.prop("player_id"))],
+    R.complement(R.equals)
+  )
 
   return <div className="player-details">
     {U.ifElse(loading,
