@@ -7,7 +7,7 @@ const U = require("karet.util")
 
 const FaceitClient = require("./Faceit.js")
 
-const API_KEY = ""
+const API_KEY = "82592226-3fb7-41cf-941c-7098de7d84c7"
 const client = new FaceitClient(API_KEY)
 
 const App = () => {
