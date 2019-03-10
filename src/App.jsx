@@ -98,9 +98,9 @@ const PlayerDetails = ({selection}) => {
           <tbody>
             <tr><td>Player ID</td><td>{U.view("player_id", player)}</td></tr>
             <tr><td>Country</td><td>{U.view("country", player)}</td></tr>
-            {U.when(player.map(_ => _.platforms.steam),
+            {U.when(player.map(R.path(["platforms", "steam"])),
               <tr><td>Steam ID</td><td>{U.view(["platforms", "steam"], player)}</td></tr>)}
-            {U.when(player.map(_ => _.games.csgo),
+            {U.when(player.map(R.path(["games", "csgo", "faceit_elo"])),
               <tr><td>CSGO elo</td><td>{U.view(["games", "csgo", "faceit_elo"], player)}</td></tr>)}
           </tbody>
         </table>
