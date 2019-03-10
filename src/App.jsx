@@ -8,9 +8,7 @@ const U = require("karet.util")
 require("./style.scss")
 
 const FaceitClient = require("./Faceit.js")
-
-const API_KEY = "82592226-3fb7-41cf-941c-7098de7d84c7"
-const client = new FaceitClient(API_KEY)
+const MatchList = require("./MatchList.jsx")
 
 const App = () => {
   const selectedPlayer = new Atom("")
@@ -33,7 +31,7 @@ const Search = ({selection}) => {
   const searchResults = nameInput
     .filter(lengthAtLeast(3))
     .debounce(250)
-    .flatMapLatest(name => client.searchPlayer(name))
+    .flatMapLatest(name => FaceitClient.searchPlayer(name))
     .map(R.prop("items"))
     .toProperty(() => [])
 
@@ -92,7 +90,7 @@ const Search = ({selection}) => {
 
 const PlayerDetails = ({selection}) => {
   const player = selection.debounce(500)
-    .flatMapLatest(playerId => client.getPlayer(playerId))
+    .flatMapLatest(playerId => FaceitClient.getPlayer(playerId))
     .toProperty(() => undefined)
 
   const loading = Kefir.combine(
@@ -121,39 +119,6 @@ const PlayerDetails = ({selection}) => {
       </div>,
     )}
   </div>
-}
-
-const MatchList = ({playerId}) => {
-  const matches = playerId
-    .flatMapLatest(playerId => client.getHistory(playerId, "csgo"))
-    .map(R.prop("items"))
-    .toProperty(() => [])
-
-  return <div className="match-history">
-    <h2>Match history</h2>
-    {U.mapElemsWithIds("match_id", (match, id) =>
-      <Match key={id} playerId={playerId} match={match} />, matches)}
-  </div>
-}
-
-const Match = ({playerId, match}) => {
-  const team1 = U.view(["teams", "faction1"], match)
-  const team2 = U.view(["teams", "faction2"], match)
-
-  const TeamName = mkTeamName(playerId)
-
-  return <div className="match">
-    <p>
-      <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("match_type", match)})
-    </p>
-    <pre>{U.stringify(match, null, 2)}</pre>
-  </div>
-}
-
-const mkTeamName = playerId => ({team}) => {
-  const isHomeTeam = team => Kefir.combine([team, playerId],
-    (team, playerId) => team.players.map(R.prop("player_id")).includes(playerId))
-  return <span className={U.cns(U.ifElse(isHomeTeam(team), "home-team", "enemy-team"))}>{U.view("nickname", team)}</span>
 }
 
 const lengthAtLeast = n => R.compose(R.lte(n), R.length)

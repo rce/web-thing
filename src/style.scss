@@ -36,12 +36,15 @@ body {
 .match-history {
   .match {
     .home-team {
-      color: green;
+      font-weight: bold;
+      font-style: italic;
     }
     .enemy-team {
-      color: red;
     }
   }
+
+  .win { color: green }
+  .loss { color: red }
 }
 
 .main-content {

@@ -1,6 +1,8 @@
 const Kefir = require("kefir")
 
-module.exports = class FaceitClient {
+const API_KEY = "82592226-3fb7-41cf-941c-7098de7d84c7"
+
+class FaceitClient {
   constructor(apiKey) {
     this.base = "https://open.faceit.com/data/v4"
     this.apiKey = apiKey
@@ -23,6 +25,14 @@ module.exports = class FaceitClient {
     return this.callApi("GET", `/players/${playerId}/history`, {game})
   }
 
+  getMatch(matchId) {
+    return this.callApi("GET", `/matches/${matchId}`)
+  }
+
+  getMatchStats(matchId) {
+    return this.callApi("GET", `/matches/${matchId}/stats`)
+  }
+
   callApi(method, path, params) {
     const url = `${this.base}${path}?${this.mkQueryString(params)}`
     return Kefir.fromPromise(
@@ -42,3 +52,5 @@ module.exports = class FaceitClient {
     return searchParams.toString()
   }
 }
+
+module.exports = new FaceitClient(API_KEY)
