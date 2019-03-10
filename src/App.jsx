@@ -5,6 +5,8 @@ const R = require("ramda")
 const Kefir = require("kefir")
 const U = require("karet.util")
 
+require("./style.scss")
+
 const FaceitClient = require("./Faceit.js")
 
 const API_KEY = "82592226-3fb7-41cf-941c-7098de7d84c7"

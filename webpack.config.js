@@ -78,6 +78,15 @@ const commonConfiguration = env => {
             "eslint-loader"
           ],
           exclude: /node_modules/
+        },
+        {
+          test: /\.scss$/,
+          use: [
+            "style-loader",
+            "css-loader",
+            "sass-loader"
+          ],
+          exclude: /node_modules/
         }
       ]
     },
