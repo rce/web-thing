@@ -48,8 +48,8 @@ const Search = ({selection}) => {
           {U.mapElemsWithIds("player_id", (x, playerId) => {
             const selected = selection.map(_ => _ === playerId)
             return (
-              <li key={playerId} onClick={() => selection.set(playerId)}>
-                {U.view("nickname", x)} {U.when(selected, "(selected)")}
+              <li key={playerId} onClick={() => selection.set(playerId)} className={U.cns(U.when(selected, "selected"))}>
+                {U.view("nickname", x)}
               </li>
             )
           }, searchResults)}

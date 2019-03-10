@@ -2,6 +2,7 @@
 
 $fontColor: #333;
 $backgroundColor: #f7f7f7;
+$hilightColor: #eee;
 
 $sidebarWidth: 200px;
 
@@ -17,6 +18,10 @@ body {
 
   position: fixed;
   top: 0; left: 0;
+
+  li.selected {
+    background-color: $hilightColor;
+  }
 }
 
 .main-content {
