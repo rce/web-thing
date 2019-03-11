@@ -70,14 +70,17 @@ const Search = ({selection}) => {
       onChange={U.getProps({value: nameInput})} />
 
     {U.ifElse(hasResults,
-      <ul onMouseDown={e => {
-        e.preventDefault()
-        inputRef.get().focus()
-      }}>
+      <ul className="search-results"
+        onMouseDown={e => {
+          e.preventDefault()
+          inputRef.get().focus()
+        }}>
         {U.mapElems((x, idx) => {
           const selected = selectedIndex.map(R.equals(idx))
+          const ref = new Atom()
+          selected.filter(R.identity).onValue(() => scrollVisible(ref.get()))
           return (
-            <li key={idx} onClick={() => selectedIndex.set(idx)} className={U.cns(U.when(selected, "selected"))}>
+            <li ref={U.set(ref)} key={idx} onClick={() => selectedIndex.set(idx)} className={U.cns(U.when(selected, "selected"))}>
               {U.view("nickname", x)}
             </li>
           )
@@ -86,6 +89,9 @@ const Search = ({selection}) => {
       <p>No results</p>)}
   </div>
 }
+
+const scrollVisible = element =>
+  element && element.scrollIntoView({ block: "nearest" })
 
 const PlayerDetails = ({selection}) => {
   const player = selection.debounce(500)

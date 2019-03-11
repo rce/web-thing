@@ -13,12 +13,29 @@ body {
 }
 
 .search-form {
+  // Search form is always screen height
   height: 100%;
+
+  // Search input is at the top and results fill the rest
+  display: flex;
+  flex-direction: column;
+  .search-results { flex-grow: 1; }
+
   width: $sidebarWidth;
 
   position: fixed;
   top: 0; left: 0;
-  overflow-y: scroll;
+  overflow: none;
+
+  input {
+    height: 30px;
+    padding: 5px;
+  }
+
+  .search-results {
+    height: 100%;
+    overflow-y: scroll;
+  }
 
   ul {
     margin: 0;

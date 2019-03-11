@@ -12,7 +12,7 @@ class FaceitClient {
   }
 
   searchPlayer(nickname) {
-    return this.callApi("GET", "/search/players", {nickname, limit: 25, game: "csgo"})
+    return this.callApi("GET", "/search/players", {nickname, limit: "1000", game: "csgo"})
       .map(R.prop("items"))
   }
 
