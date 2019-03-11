@@ -9,10 +9,11 @@
         "no-console": "warn",
         "no-undef": "warn",
         "no-unused-vars": "warn",
+        "react/display-name": false,
         "react/prop-types": false
     },
     "parserOptions": {
-        "ecmaVersion": 2017,
+        "ecmaVersion": 2018,
         "ecmaFeatures": {
             "jsx": true
         }

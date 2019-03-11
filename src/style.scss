@@ -5,6 +5,7 @@ $backgroundColor: #f7f7f7;
 $hilightColor: #eee;
 
 $sidebarWidth: 200px;
+$searchItemHeight: 32px;
 
 body {
   font-family: 'Source Sans Pro', sans-serif;
@@ -13,28 +14,55 @@ body {
 }
 
 .search-form {
-  // Search form is always screen height
-  height: 100%;
-
-  // Search input is at the top and results fill the rest
-  display: flex;
-  flex-direction: column;
-  .search-results { flex-grow: 1; }
-
-  width: $sidebarWidth;
-
+  // Search bar hsa fixed position
   position: fixed;
   top: 0; left: 0;
   overflow: none;
 
+  // Search form is always full screen height
+  height: 100%;
+  width: $sidebarWidth;
+
+  // Search input is at the top and results
+  // fill the rest with scroll bar
+  display: flex;
+  flex-direction: column;
   input {
-    height: 30px;
-    padding: 5px;
+    $padding: 10px;
+    min-height: $searchItemHeight - (2 * $padding);
+    height: $searchItemHeight - (2 * $padding);
+    padding: $padding;
   }
 
   .search-results {
-    height: 100%;
+    flex-grow: 1;
     overflow-y: scroll;
+  }
+
+  // Vertically align text in search results by setting layout
+  // with flex and setting proper line-height
+  .search-results .search-result {
+    display: flex;
+    height: $searchItemHeight;
+    .nickname {
+      flex-grow: 1;
+      vertical-align: middle;
+      line-height: $searchItemHeight;
+    }
+  }
+
+  .search-results {
+    .search-result {
+      // Fancy separator lines
+      border-bottom: 1px dashed #ddd;
+      box-sizing: border-box;
+
+      .avatar {
+        width: $searchItemHeight;
+        height: $searchItemHeight;
+        margin-right: 10px;
+      }
+    }
   }
 
   ul {

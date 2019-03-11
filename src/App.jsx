@@ -80,15 +80,24 @@ const Search = ({selection}) => {
           const ref = new Atom()
           selected.filter(R.identity).onValue(() => scrollVisible(ref.get()))
           return (
-            <li ref={U.set(ref)} key={idx} onClick={() => selectedIndex.set(idx)} className={U.cns(U.when(selected, "selected"))}>
-              {U.view("nickname", x)}
-            </li>
+            <SearchResultPlayer result={x}
+              ref={U.set(ref)}
+              key={idx}
+              onClick={() => selectedIndex.set(idx)}
+              className={U.cns(U.when(selected, "selected"))} />
           )
         }, searchResults)}
       </ul>,
       <p>No results</p>)}
   </div>
 }
+
+const SearchResultPlayer = React.forwardRef(({result, className, ...props}, ref) => (
+  <li {...props} ref={ref} className={U.cns("search-result", className)}>
+    <img className="avatar" src={U.view("avatar", result)} />
+    <span className="nickname">{U.view("nickname", result)}</span>
+  </li>
+))
 
 const scrollVisible = element =>
   element && element.scrollIntoView({ block: "nearest" })
