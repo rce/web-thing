@@ -32,7 +32,6 @@ const Search = ({selection}) => {
     .filter(lengthAtLeast(3))
     .debounce(250)
     .flatMapLatest(name => FaceitClient.searchPlayer(name))
-    .map(R.prop("items"))
     .toProperty(() => [])
 
   // Select first result automatically

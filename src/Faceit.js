@@ -1,4 +1,6 @@
 const Kefir = require("kefir")
+const R = require("ramda")
+const {DateTime} = require("luxon")
 
 const API_KEY = "82592226-3fb7-41cf-941c-7098de7d84c7"
 
@@ -10,11 +12,8 @@ class FaceitClient {
   }
 
   searchPlayer(nickname) {
-    return this.callApi("GET", "/search/players", {
-      nickname,
-      limit: 25,
-      game: "csgo",
-    })
+    return this.callApi("GET", "/search/players", {nickname, limit: 25, game: "csgo"})
+      .map(R.prop("items"))
   }
 
   getPlayer(playerId) {
@@ -23,10 +22,14 @@ class FaceitClient {
 
   getHistory(playerId, game) {
     return this.callApi("GET", `/players/${playerId}/history`, {game})
+      .map(R.prop("items"))
   }
 
   getMatch(matchId) {
     return this.callApi("GET", `/matches/${matchId}`)
+      .map(m => R.mergeLeft({
+        started_at: DateTime.fromSeconds(m.started_at),
+      }, m))
   }
 
   getMatchStats(matchId) {
@@ -36,10 +39,7 @@ class FaceitClient {
   callApi(method, path, params) {
     const url = `${this.base}${path}?${this.mkQueryString(params)}`
     return Kefir.fromPromise(
-      fetch(url, {
-        method,
-        headers: this.authHeaders,
-      }).then(_ => _.json())
+      fetch(url, {method, headers: this.authHeaders}).then(_ => _.json())
     )
   }
 

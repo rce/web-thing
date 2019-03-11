@@ -30,6 +30,7 @@
     "karet.util": "^0.19.1",
     "kefir": "3.8.6",
     "kefir.atom": "5.5.2",
+    "luxon": "1.11.4",
     "partial.lenses": "14.17.0",
     "ramda": "0.26.1",
     "react": "16.8.4",

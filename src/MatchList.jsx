@@ -8,7 +8,6 @@ const FaceitClient = require("./Faceit.js")
 const MatchList = ({playerId}) => {
   const matches = playerId
     .flatMapLatest(playerId => FaceitClient.getHistory(playerId, "csgo"))
-    .map(R.prop("items"))
     .toProperty(() => [])
 
   return <div className="match-history">
@@ -24,23 +23,38 @@ const Match = ({playerId, matchId}) => {
   const team1 = U.view(["teams", "faction1"], match)
   const team2 = U.view(["teams", "faction2"], match)
 
-  const winOrLoss = Kefir.combine([match.filter(R.identity)], [playerId], (match, playerId) => {
-    const myTeam = match.teams.faction1.roster.map(R.prop("player_id")).includes(playerId) ? "faction1" : "faction2"
-    if (match.results.winner === myTeam) {
-      return <span className="win">WIN</span>
-    } else {
-      return <span className="loss">LOSS</span>
-    }
-  })
+  const winOrLoss = U.when(match,
+    Kefir.combine([match], [playerId], (match, playerId) => {
+      return hasPlayer(playerId, winner(match))
+        ? <span className="win">WIN</span>
+        : <span className="loss">LOSS</span>
+    }))
 
   const TeamName = mkTeamName(playerId)
-  return <div className="match">
-    <p>
-      <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
-    </p>
-    <p>{U.thru(winOrLoss, U.toProperty)}</p>
-  </div>
+  return (
+    <div className="match">
+      {U.ifElse(
+        R.isNil(match),
+        <Spinner />,
+        <div>
+          <p>
+            <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
+          </p>
+          <p>{winOrLoss}</p>
+          <p>{U.view(["started_at", formatTime], match)}</p>
+        </div>)}
+    </div>
+  )
 }
+
+const winner = match => match.teams[match.results.winner]
+
+const hasPlayer = (playerId, team) =>
+  team.roster.map(R.prop("player_id")).includes(playerId)
+
+const formatTime = date => date.toRelative()
+
+const Spinner = () => <p>Loading...</p>
 
 const mkTeamName = playerId => ({team, className}) => {
   const isHomeTeam = team => Kefir.combine([team], [playerId],
