@@ -38,9 +38,30 @@ class FaceitClient {
 
   callApi(method, path, params) {
     const url = `${this.base}${path}?${this.mkQueryString(params)}`
-    return Kefir.fromPromise(
-      fetch(url, {method, headers: this.authHeaders}).then(_ => _.json())
-    )
+    return Kefir.stream(emitter => {
+      const controller = new AbortController()
+      const signal = controller.signal
+      let requestDone = false
+
+      fetch(url, {method, headers: this.authHeaders, signal})
+        .then(_ => _.json())
+        .then(result => {
+          requestDone = true
+          emitter.emit(result)
+          emitter.end()
+        })
+        .catch(err => {
+          emitter.error(err)
+          emitter.end()
+        })
+
+      return () => {
+        if (!requestDone) {
+          console.log(`Cancelling request in progress: ${path}`)
+          controller.abort()
+        }
+      }
+    })
   }
 
   mkQueryString(paramObject) {
