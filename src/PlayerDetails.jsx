@@ -5,16 +5,12 @@ const U = require("karet.util")
 const FaceitClient = require("./Faceit.js")
 const MatchList = require("./MatchList.jsx")
 const {Spinner} = require("./Common.jsx")
-const {isAwaiting} = require("./Util.js")
 
-const PlayerDetails = ({selection}) => {
-  const player = selection
-    .flatMapLatest(playerId => FaceitClient.getPlayer(playerId))
-    .toProperty()
-  const loadingPlayer = isAwaiting(selection, player)
+const PlayerDetails = ({params: {playerId}}) => {
+  const player = FaceitClient.getPlayer(playerId).toProperty()
 
   return <div className="player-details">
-    {U.ifElse(loadingPlayer,
+    {U.ifElse(player.map(R.isNil),
       <Spinner />,
       <div>
         <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>

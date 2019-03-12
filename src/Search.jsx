@@ -8,25 +8,23 @@ const FaceitClient = require("./Faceit.js")
 const {Spinner} = require("./Common.jsx")
 const {isAwaiting} = require("./Util.js")
 
-const Search = ({selection}) => {
-  const nameInput = new Atom("somnium")
-  const selectedIndex = new Atom(0)
+const Search = ({onSelect}) => {
+  const nameInput = new Atom("")
+  const selectedIndex = new Atom(undefined)
 
   const searchTerm = nameInput.filter(lengthAtLeast(3)).debounce(250).skipDuplicates()
   const searchResults = searchTerm
     .flatMapLatest(name => FaceitClient.searchPlayer(name))
     .toProperty(() => [])
+
   const loadingResults = isAwaiting(searchTerm, searchResults)
 
-  // Select first result automatically
-  searchResults.onValue(() => selectedIndex.set(0))
+  // Reset selection on new search results
+  searchResults.onValue(() => selectedIndex.set(undefined))
 
-  Kefir.combine(
-    [selectedIndex, searchResults],
-    (idx, results) => R.path([idx, "player_id"], results)
-  ).onValue(playerId => selection.set(playerId))
-
-  const hasResults = searchResults.map(R.complement(R.isEmpty))
+  // Trigger onSelect handler on selection
+  Kefir.combine([selectedIndex], [searchResults])
+    .onValue(([idx, results]) => isDefined(idx) && onSelect(results[idx]))
 
   const upsAndDowns = U.bus()
   const onKeyDown = e => {
@@ -36,10 +34,24 @@ const Search = ({selection}) => {
       upsAndDowns.push(e)
     }
   }
-  Kefir.combine([upsAndDowns, searchResults], (e, results) => {
-    const mod = e.key === "ArrowUp" ? R.dec : R.inc
-    return idx => R.min(R.max(0, mod(idx)), results.length - 1)
-  }).onValue(func => selectedIndex.modify(func))
+
+  Kefir.combine([upsAndDowns], [selectedIndex, searchResults])
+    .onValue(([e, idx, items]) => {
+      // If there are no items, nothing can be selected
+      if (items.length === 0) {
+        return selectedIndex.set(undefined)
+      }
+
+      // If there is nothing selected, always select the first item
+      if (!isDefined(idx)) {
+        return selectedIndex.set(0)
+      }
+
+      // Otherwise select the previous/next item unless at the start or end of the list
+      const mod = e.key === "ArrowUp" ? R.dec : R.inc
+      const newIdx = limitRange(0, items.length)(mod(idx))
+      selectedIndex.set(newIdx)
+    })
 
   // Reference to input to keep focus on it
   const inputRef = new Atom()
@@ -55,26 +67,24 @@ const Search = ({selection}) => {
 
     {U.when(loadingResults, <Spinner />)}
 
-    {U.ifElse(hasResults,
-      <ul className="search-results"
-        onMouseDown={e => {
-          e.preventDefault()
-          inputRef.get().focus()
-        }}>
-        {U.mapElems((x, idx) => {
-          const selected = selectedIndex.map(R.equals(idx))
-          const ref = new Atom()
-          selected.filter(R.identity).onValue(() => scrollVisible(ref.get()))
-          return (
-            <SearchResultPlayer result={x}
-              ref={U.set(ref)}
-              key={idx}
-              onClick={() => selectedIndex.set(idx)}
-              className={U.cns(U.when(selected, "selected"))} />
-          )
-        }, searchResults)}
-      </ul>,
-      <p>No results</p>)}
+    <ul className="search-results"
+      onMouseDown={e => {
+        e.preventDefault()
+        inputRef.get().focus()
+      }}>
+      {U.mapElems((x, idx) => {
+        const selected = selectedIndex.map(R.equals(idx))
+        const ref = new Atom()
+        selected.filter(R.identity).onValue(() => scrollVisible(ref.get()))
+        return (
+          <SearchResultPlayer result={x}
+            ref={U.set(ref)}
+            key={idx}
+            onClick={() => selectedIndex.set(idx)}
+            className={U.cns(U.when(selected, "selected"))} />
+        )
+      }, searchResults)}
+    </ul>
   </div>
 }
 
@@ -89,5 +99,9 @@ const scrollVisible = element =>
   element && element.scrollIntoView({ block: "nearest" })
 
 const lengthAtLeast = n => R.compose(R.lte(n), R.length)
+
+const limitRange = (min, max) => R.pipe(R.min(max), R.max(min))
+
+const isDefined = x => typeof x !== "undefined"
 
 module.exports = {Search}

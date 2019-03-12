@@ -1,25 +1,22 @@
 const React = require("karet")
 const {render} = require("react-dom")
-const {Atom} = require("kefir.atom")
-const U = require("karet.util")
 
 require("./style.scss")
 
+const {BrowserRouter, Route, navigate} = require("./Router.jsx")
 const PlayerDetails = require("./PlayerDetails.jsx")
 const {Search} = require("./Search.jsx")
 
 const App = () => {
-  const selectedPlayer = new Atom("")
+  const onSelect = p => navigate(`#/player/${p.player_id}`)
 
   return (
-    <React.Fragment>
-      <Search selection={selectedPlayer} />
+    <BrowserRouter>
+      <Search onSelect={onSelect} />
       <div className="main-content">
-        {U.ifElse(selectedPlayer,
-          <PlayerDetails selection={selectedPlayer} />,
-          <p>Select a player from search results</p>)}
+        <Route hash="#/player/:playerId" Component={PlayerDetails} />
       </div>
-    </React.Fragment>
+    </BrowserRouter>
   )
 }
 
