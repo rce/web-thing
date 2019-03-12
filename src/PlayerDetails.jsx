@@ -9,18 +9,18 @@ const {Spinner} = require("./Common.jsx")
 const PlayerDetails = ({params: {playerId}}) => {
   const player = FaceitClient.getPlayer(playerId).toProperty()
 
+  const steamId = U.view("steam_id_64", player)
   return <div className="player-details">
     {U.ifElse(player.map(R.isNil),
       <Spinner />,
       <div>
         <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>
         <img className="player-avatar" src={U.view("avatar", player)} />
+        {U.when(steamId, <p><a href={U.string`https://steamcommunity.com/profiles/${steamId}`}>Steam profile</a></p>)}
         <table>
           <tbody>
             <tr><td>Player ID</td><td>{U.view("player_id", player)}</td></tr>
             <tr><td>Country</td><td>{U.view("country", player)}</td></tr>
-            {U.when(player.map(R.path(["platforms", "steam"])),
-              <tr><td>Steam ID</td><td>{U.view(["platforms", "steam"], player)}</td></tr>)}
             {U.when(player.map(R.path(["games", "csgo", "faceit_elo"])),
               <tr><td>CSGO elo</td><td>{U.view(["games", "csgo", "faceit_elo"], player)}</td></tr>)}
           </tbody>
