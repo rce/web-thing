@@ -4,6 +4,7 @@ const U = require("karet.util")
 const R = require("ramda")
 
 const FaceitClient = require("./Faceit.js")
+const {Spinner} = require("./Common.jsx")
 
 const MatchList = ({playerId}) => {
   const matches = playerId
@@ -53,8 +54,6 @@ const hasPlayer = (playerId, team) =>
   team.roster.map(R.prop("player_id")).includes(playerId)
 
 const formatTime = date => date.toRelative()
-
-const Spinner = () => <p>Loading...</p>
 
 const mkTeamName = playerId => ({team, className}) => {
   const isHomeTeam = team => Kefir.combine([team], [playerId],

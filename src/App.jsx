@@ -9,6 +9,7 @@ require("./style.scss")
 
 const FaceitClient = require("./Faceit.js")
 const MatchList = require("./MatchList.jsx")
+const {Spinner} = require("./Common.jsx")
 
 const App = () => {
   const selectedPlayer = new Atom("")
@@ -28,11 +29,11 @@ const Search = ({selection}) => {
   const nameInput = new Atom("")
   const selectedIndex = new Atom(0)
 
-  const searchResults = nameInput
-    .filter(lengthAtLeast(3))
-    .debounce(250)
+  const searchTerm = nameInput.filter(lengthAtLeast(3)).debounce(250).skipDuplicates()
+  const searchResults = searchTerm
     .flatMapLatest(name => FaceitClient.searchPlayer(name))
     .toProperty(() => [])
+  const loadingResults = isAwaiting(searchTerm, searchResults)
 
   // Select first result automatically
   searchResults.onValue(() => selectedIndex.set(0))
@@ -69,6 +70,8 @@ const Search = ({selection}) => {
       onKeyDown={onKeyDown}
       onChange={U.getProps({value: nameInput})} />
 
+    {U.when(loadingResults, <Spinner />)}
+
     {U.ifElse(hasResults,
       <ul className="search-results"
         onMouseDown={e => {
@@ -91,6 +94,12 @@ const Search = ({selection}) => {
       <p>No results</p>)}
   </div>
 }
+
+const isAwaiting = (stream, derivative) =>
+  Kefir.merge([
+    stream.map(() => true),
+    derivative.map(() => false),
+  ])
 
 const SearchResultPlayer = React.forwardRef(({result, className, ...props}, ref) => (
   <li {...props} ref={ref} className={U.cns("search-result", className)}>
