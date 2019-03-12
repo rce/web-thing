@@ -112,18 +112,14 @@ const scrollVisible = element =>
   element && element.scrollIntoView({ block: "nearest" })
 
 const PlayerDetails = ({selection}) => {
-  const player = selection.debounce(500)
+  const player = selection
     .flatMapLatest(playerId => FaceitClient.getPlayer(playerId))
-    .toProperty(() => undefined)
-
-  const loading = Kefir.combine(
-    [selection, player.map(R.prop("player_id"))],
-    R.complement(R.equals)
-  )
+    .toProperty()
+  const loadingPlayer = isAwaiting(selection, player)
 
   return <div className="player-details">
-    {U.ifElse(loading,
-      <p>Loading...</p>,
+    {U.ifElse(loadingPlayer,
+      <Spinner />,
       <div>
         <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>
         <img className="player-avatar" src={U.view("avatar", player)} />
