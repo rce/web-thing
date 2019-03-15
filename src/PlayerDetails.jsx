@@ -13,6 +13,8 @@ const PlayerDetails = ({params: {playerId}}) => {
   const showJson = new Atom(false)
 
   const steamId = U.view("steam_id_64", player)
+  const csgoElo = U.view(["games", "csgo", "faceit_elo"], player)
+
   return <div>
     {U.ifElse(player.map(R.isNil),
       <Spinner />,
@@ -21,16 +23,11 @@ const PlayerDetails = ({params: {playerId}}) => {
           <img className="player-avatar" src={U.view("avatar", player)} />
           <div className="player-info">
             <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>
-            <p><a href={U.string`https://www.faceit.com/en/players/${U.view("nickname", player)}`}>FACEIT profile</a></p>
-            {U.when(steamId, <p><a href={U.string`https://steamcommunity.com/profiles/${steamId}`}>Steam profile</a></p>)}
-            <table>
-              <tbody>
-                <tr><td>Player ID</td><td>{U.view("player_id", player)}</td></tr>
-                <tr><td>Country</td><td>{U.view("country", player)}</td></tr>
-                {U.when(player.map(R.path(["games", "csgo", "faceit_elo"])),
-                  <tr><td>CSGO elo</td><td>{U.view(["games", "csgo", "faceit_elo"], player)}</td></tr>)}
-              </tbody>
-            </table>
+            <ul>
+              <li><a href={U.string`https://www.faceit.com/en/players/${U.view("nickname", player)}`}>FACEIT profile</a></li>
+              {U.when(steamId, <li><a href={U.string`https://steamcommunity.com/profiles/${steamId}`}>Steam profile</a></li>)}
+              {U.when(csgoElo, <li>CS:GO elo {csgoElo}</li>)}
+            </ul>
           </div>
         </div>
 
