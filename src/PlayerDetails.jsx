@@ -6,10 +6,11 @@ const {Atom} = require("kefir.atom")
 const FaceitClient = require("./Faceit.js")
 const MatchList = require("./MatchList.jsx")
 const {Spinner} = require("./Common.jsx")
+const {toggle} = require("./Util.js")
 
 const PlayerDetails = ({params: {playerId}}) => {
   const player = FaceitClient.getPlayer(playerId).toProperty()
-  const isOpen = new Atom(false)
+  const showJson = new Atom(false)
 
   const steamId = U.view("steam_id_64", player)
   return <div>
@@ -33,8 +34,8 @@ const PlayerDetails = ({params: {playerId}}) => {
         </div>
 
         <div>
-          <button onClick={() => isOpen.modify(R.not)}>Show details</button>
-          {U.when(isOpen, <pre>{U.stringify(player, null, 2)}</pre>)}
+          <button onClick={toggle(showJson)}>Show JSON</button>
+          {U.when(showJson, <pre>{U.stringify(player, null, 2)}</pre>)}
         </div>
 
         <MatchList playerId={U.view("player_id", player)} />

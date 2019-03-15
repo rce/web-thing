@@ -6,6 +6,7 @@ const R = require("ramda")
 
 const FaceitClient = require("./Faceit.js")
 const {Spinner} = require("./Common.jsx")
+const {toggle} = require("./Util.js")
 
 const MatchList = ({playerId}) => {
   const matches = playerId
@@ -142,8 +143,6 @@ const MatchDetails = ({match, getRoster}) => {
     </div>
   )
 }
-
-const toggle = obs => () => obs.modify(R.not)
 
 const winner = match => match.teams[match.results.winner]
 

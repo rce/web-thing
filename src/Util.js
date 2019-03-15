@@ -1,4 +1,5 @@
 const Kefir = require("kefir")
+const R = require("ramda")
 
 const isAwaiting = (stream, derivative) =>
   Kefir.merge([
@@ -6,4 +7,6 @@ const isAwaiting = (stream, derivative) =>
     derivative.map(() => false),
   ])
 
-module.exports = {isAwaiting}
+const toggle = obs => () => obs.modify(R.not)
+
+module.exports = {isAwaiting, toggle}
