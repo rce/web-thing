@@ -1,6 +1,7 @@
 const React = require("karet")
 const R = require("ramda")
 const U = require("karet.util")
+const {Atom} = require("kefir.atom")
 
 const FaceitClient = require("./Faceit.js")
 const MatchList = require("./MatchList.jsx")
@@ -8,6 +9,7 @@ const {Spinner} = require("./Common.jsx")
 
 const PlayerDetails = ({params: {playerId}}) => {
   const player = FaceitClient.getPlayer(playerId).toProperty()
+  const isOpen = new Atom(false)
 
   const steamId = U.view("steam_id_64", player)
   return <div className="player-details">
@@ -25,6 +27,11 @@ const PlayerDetails = ({params: {playerId}}) => {
               <tr><td>CSGO elo</td><td>{U.view(["games", "csgo", "faceit_elo"], player)}</td></tr>)}
           </tbody>
         </table>
+
+        <div>
+          <button onClick={() => isOpen.modify(R.not)}>Show details</button>
+          {U.when(isOpen, <pre>{U.stringify(player, null, 2)}</pre>)}
+        </div>
 
         <MatchList playerId={U.view("player_id", player)} />
       </div>,
