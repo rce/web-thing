@@ -10,6 +10,7 @@
         "no-undef": "error",
         "no-unused-vars": "warn",
         "react/display-name": false,
+        "react/jsx-key": false,
         "react/prop-types": false
     },
     "parserOptions": {

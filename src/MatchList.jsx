@@ -22,8 +22,19 @@ const MatchList = ({playerId}) => {
 const Match = ({playerId, matchId}) => {
   const match = matchId.flatMapLatest(matchId => FaceitClient.getMatch(matchId))
     .toProperty(() => undefined)
-  const isOpen = new Atom(false)
 
+  return (
+    <div className="match">
+      {U.cond(
+        [match.map(R.isNil), <Spinner />],
+        [match.map(m => m.version === 2), <MatchV2 playerId={playerId} match={match} />],
+        [<p>Unknown match version</p>])}
+    </div>
+  )
+}
+
+const MatchV2 = ({match, playerId}) => {
+  const isOpen = new Atom(false)
   const team1 = U.view(["teams", "faction1"], match)
   const team2 = U.view(["teams", "faction2"], match)
 
@@ -33,29 +44,23 @@ const Match = ({playerId, matchId}) => {
         ? <span className="win">WIN</span>
         : <span className="loss">LOSS</span>
     }))
-
   const TeamName = mkTeamName(playerId)
   return (
-    <div className="match">
-      {U.ifElse(
-        match.map(R.isNil),
-        <Spinner />,
-        <div onClick={() => isOpen.modify(R.not)}>
-          <div className="match-header">
-            <div className="result">
-              <p>{winOrLoss}</p>
-            </div>
-            <div className="match-name">
-              <p>
-                <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
-              </p>
-            </div>
-            <div className="timestamp">
-              <p>{U.view(["started_at", formatTime], match)}</p>
-            </div>
-          </div>
-          {U.when(isOpen, <MatchDetails match={match} />)}
-        </div>)}
+    <div onClick={() => isOpen.modify(R.not)}>
+      <div className="match-header">
+        <div className="result">
+          <p>{winOrLoss}</p>
+        </div>
+        <div className="match-name">
+          <p>
+            <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
+          </p>
+        </div>
+        <div className="timestamp">
+          <p>{U.view(["started_at", formatTime], match)}</p>
+        </div>
+      </div>
+      {U.when(isOpen, <MatchDetails match={match} />)}
     </div>
   )
 }
