@@ -21,6 +21,7 @@ const PlayerDetails = ({params: {playerId}}) => {
           <img className="player-avatar" src={U.view("avatar", player)} />
           <div className="player-info">
             <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>
+            <p><a href={U.string`https://www.faceit.com/en/players/${U.view("nickname", player)}`}>FACEIT profile</a></p>
             {U.when(steamId, <p><a href={U.string`https://steamcommunity.com/profiles/${steamId}`}>Steam profile</a></p>)}
             <table>
               <tbody>
