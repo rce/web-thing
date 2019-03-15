@@ -51,13 +51,13 @@ const MatchV1 = ({match, playerId}) => {
   const TeamName = mkTeamName(getRoster)(playerId)
   return (
     <div>
-      <div className="match-header" onClick={() => isOpen.modify(R.not)}>
+      <div className="match-header" onClick={toggle(isOpen)}>
         <div className="result">
           <p>{winOrLoss}</p>
         </div>
         <div className="match-name">
           <p>
-            <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
+            <TeamName team={team1} /> vs <TeamName team={team2} />
           </p>
         </div>
         <div className="timestamp">
@@ -95,7 +95,7 @@ const MatchV2 = ({match, playerId}) => {
         </div>
         <div className="match-name">
           <p>
-            <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
+            <TeamName team={team1} /> vs <TeamName team={team2} />
           </p>
         </div>
         <div className="timestamp">
