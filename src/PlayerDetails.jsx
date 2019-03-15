@@ -7,6 +7,7 @@ const FaceitClient = require("./Faceit.js")
 const MatchList = require("./MatchList.jsx")
 const {Spinner} = require("./Common.jsx")
 const {toggle} = require("./Util.js")
+const {avatarLens} = require("./Lenses.js")
 
 const PlayerDetails = ({params: {playerId}}) => {
   const player = FaceitClient.getPlayer(playerId).toProperty()
@@ -20,7 +21,7 @@ const PlayerDetails = ({params: {playerId}}) => {
       <Spinner />,
       <div>
         <div className="player">
-          <img className="player-avatar" src={U.view("avatar", player)} />
+          <img className="player-avatar" src={U.view(avatarLens, player)} />
           <div className="player-info">
             <h2>{U.view("nickname", player)} ({U.view("country", player)})</h2>
             <ul>

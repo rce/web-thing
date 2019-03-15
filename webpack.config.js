@@ -90,6 +90,11 @@ const commonConfiguration = env => {
             "sass-loader"
           ],
           exclude: /node_modules/
+        },
+        {
+          test: /\.jpg$/,
+          use: ["file-loader"],
+          exclude: /node_modules/
         }
       ]
     },

@@ -7,6 +7,7 @@ const R = require("ramda")
 const FaceitClient = require("./Faceit.js")
 const {Spinner} = require("./Common.jsx")
 const {toggle} = require("./Util.js")
+const {avatarLens} = require("./Lenses.js")
 
 const MatchList = ({playerId}) => {
   const matches = playerId
@@ -120,7 +121,7 @@ const MatchDetails = ({match, getRoster}) => {
   const players = U.lift(team => {
     return (
       <div className="team">
-        <img className="avatar" src={U.view("avatar", team)} />
+        <img className="avatar" src={U.view(avatarLens, team)} />
         <div className="players">
           <h2>{U.view("name", team)}</h2>
           <ul>

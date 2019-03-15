@@ -7,6 +7,7 @@ const Kefir = require("kefir")
 const FaceitClient = require("./Faceit.js")
 const {Spinner} = require("./Common.jsx")
 const {isAwaiting} = require("./Util.js")
+const {avatarLens} = require("./Lenses.js")
 
 const Search = ({onSelect}) => {
   const nameInput = new Atom("")
@@ -90,7 +91,7 @@ const Search = ({onSelect}) => {
 
 const SearchResultPlayer = React.forwardRef(({result, className, ...props}, ref) => (
   <li {...props} ref={ref} className={U.cns("search-result", className)}>
-    <img className="avatar" src={U.view("avatar", result)} />
+    <img className="avatar" src={U.view(avatarLens, result)} />
     <span className="nickname">{U.view("nickname", result)}</span>
   </li>
 ))
