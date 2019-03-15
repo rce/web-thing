@@ -50,6 +50,9 @@ const productionConfiguration = {
       }
     }
   },
+  plugins: [
+    new CleanWebpackPlugin(),
+  ],
 }
 
 const commonConfiguration = env => {
@@ -91,7 +94,6 @@ const commonConfiguration = env => {
       ]
     },
     plugins: [
-      new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
         template: `${srcDir}/index.html`,
       })
