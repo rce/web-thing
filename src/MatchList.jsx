@@ -37,18 +37,19 @@ const Match = ({playerId, matchId}) => {
 
 const MatchV1 = ({match, playerId}) => {
   const getRoster = R.prop("roster_v1")
+  const getPlayerId = R.prop("guid")
   const isOpen = new Atom(false)
   const team1 = U.view(["teams", "faction1"], match)
   const team2 = U.view(["teams", "faction2"], match)
 
   const winOrLoss = U.when(match,
     Kefir.combine([match], [playerId], (match, playerId) => {
-      return hasPlayer(getRoster)(playerId, winner(match))
+      return hasPlayer(getRoster, getPlayerId)(playerId, winner(match))
         ? <span className="win">WIN</span>
         : <span className="loss">LOSS</span>
     }))
 
-  const TeamName = mkTeamName(getRoster)(playerId)
+  const TeamName = mkTeamName(getRoster, getPlayerId)(playerId)
   return (
     <div>
       <div className="match-header" onClick={toggle(isOpen)}>
@@ -76,17 +77,18 @@ const MatchV1 = ({match, playerId}) => {
 
 const MatchV2 = ({match, playerId}) => {
   const getRoster = R.prop("roster")
+  const getPlayerId = R.prop("player_id")
   const isOpen = new Atom(false)
   const team1 = U.view(["teams", "faction1"], match)
   const team2 = U.view(["teams", "faction2"], match)
 
   const winOrLoss = U.when(match,
     Kefir.combine([match], [playerId], (match, playerId) => {
-      return hasPlayer(getRoster)(playerId, winner(match))
+      return hasPlayer(getRoster, getPlayerId)(playerId, winner(match))
         ? <span className="win">WIN</span>
         : <span className="loss">LOSS</span>
     }))
-  const TeamName = mkTeamName(getRoster)(playerId)
+  const TeamName = mkTeamName(getRoster, getPlayerId)(playerId)
   return (
     <div>
       <div className="match-header" onClick={() => isOpen.modify(R.not)}>
@@ -146,14 +148,14 @@ const MatchDetails = ({match, getRoster}) => {
 
 const winner = match => match.teams[match.results.winner]
 
-const hasPlayer = getRoster => (playerId, team) =>
-  getRoster(team).map(R.prop("player_id")).includes(playerId)
+const hasPlayer = (getRoster, getPlayerId) => (playerId, team) =>
+  getRoster(team).map(getPlayerId).includes(playerId)
 
 const formatTime = date => date.toRelative()
 
-const mkTeamName = getRoster => playerId => ({team, className}) => {
+const mkTeamName = (getRoster, getPlayerId) => playerId => ({team, className}) => {
   const isHomeTeam = team => Kefir.combine([team], [playerId],
-    (team, playerId) => getRoster(team).map(R.prop("player_id")).includes(playerId))
+    (team, playerId) => getRoster(team).map(getPlayerId).includes(playerId))
   return <span className={U.cns(className, U.ifElse(isHomeTeam(team), "home-team", "enemy-team"))}>{U.view("name", team)}</span>
 }
 
