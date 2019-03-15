@@ -84,27 +84,6 @@ body {
   margin-left: $sidebarWidth;
 }
 
-.match-history {
-  .match {
-    border: 1px solid #eee;
-    background: white;
-    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-
-    margin: 10px;
-    padding: 10px;
-
-    .home-team {
-      font-weight: bold;
-      font-style: italic;
-    }
-    .enemy-team {
-    }
-  }
-
-  .win { color: green }
-  .loss { color: red }
-}
-
 .player {
   display: flex;
   flex-direction: row;
@@ -120,27 +99,67 @@ body {
 
 // Match component layout
 .match {
+  margin: ($defaultPadding / 2) 0;
+  padding: ($defaultPadding / 4) 0;
   .match-header {
     display: flex;
     flex-direction: row;
 
     .result {
       width: 100px;
-      text-align: center;
     }
     .match-name {
       flex-grow: 1;
-      border-left: 1px solid lightgray;
-      border-right: 1px solid lightgray;
       padding-left: $defaultPadding;
     }
     .timestamp {
       width: 100px;
-      padding-left: $defaultPadding;
+      padding: 0 $defaultPadding;
+    }
+    .toggle {
+      width: 16px;
+      padding: 0 $defaultPadding;
+    }
+  }
+}
+
+// Match component styles
+.match {
+  border: 1px solid #eee;
+  background: white;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+
+  .match-header {
+    .result {
+      text-align: center;
+      .win { color: green }
+      .loss { color: red }
+    }
+
+    .match-name {
+      border-left: 1px solid lightgray;
+      border-right: 1px solid lightgray;
+
+      .home-team {
+        font-weight: bold;
+        font-style: italic;
+      }
+      .enemy-team {
+      }
+    }
+
+    .timestamp {
+      text-align: center;
+    }
+
+    .toggle {
+      text-align: center;
+      border-left: 1px solid lightgray;
     }
   }
 
   .match-details {
+    padding: $defaultPadding;
     border-top: 1px solid lightgray;
   }
 }

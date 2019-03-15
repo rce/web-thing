@@ -46,8 +46,8 @@ const MatchV2 = ({match, playerId}) => {
     }))
   const TeamName = mkTeamName(playerId)
   return (
-    <div onClick={() => isOpen.modify(R.not)}>
-      <div className="match-header">
+    <div>
+      <div className="match-header" onClick={() => isOpen.modify(R.not)}>
         <div className="result">
           <p>{winOrLoss}</p>
         </div>
@@ -58,6 +58,11 @@ const MatchV2 = ({match, playerId}) => {
         </div>
         <div className="timestamp">
           <p>{U.view(["started_at", formatTime], match)}</p>
+        </div>
+        <div className="toggle">
+          <p>{U.ifElse(isOpen,
+            <i className="fas fa-chevron-down" />,
+            <i className="fas fa-chevron-right" />)}</p>
         </div>
       </div>
       {U.when(isOpen, <MatchDetails match={match} />)}
