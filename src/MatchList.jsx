@@ -19,7 +19,8 @@ const MatchList = ({playerId}) => {
 }
 
 const Match = ({playerId, matchId}) => {
-  const match = matchId.flatMapLatest(matchId => FaceitClient.getMatch(matchId)).toProperty()
+  const match = matchId.flatMapLatest(matchId => FaceitClient.getMatch(matchId))
+    .toProperty(() => undefined)
 
   const team1 = U.view(["teams", "faction1"], match)
   const team2 = U.view(["teams", "faction2"], match)
@@ -35,7 +36,7 @@ const Match = ({playerId, matchId}) => {
   return (
     <div className="match">
       {U.ifElse(
-        R.isNil(match),
+        match.map(R.isNil),
         <Spinner />,
         <div>
           <p>
