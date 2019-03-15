@@ -4,6 +4,8 @@ $fontColor: #333;
 $backgroundColor: #f7f7f7;
 $hilightColor: #eee;
 
+$defaultPadding: 20px;
+
 $sidebarWidth: 300px;
 $searchItemHeight: 32px;
 
@@ -103,6 +105,19 @@ body {
   .loss { color: red }
 }
 
+.player {
+  display: flex;
+  flex-direction: row;
+  .player-avatar {
+    width: 170px;
+    height: 170px;
+  }
+  .player-info {
+    flex-grow: 1;
+    padding-left: $defaultPadding;
+  }
+}
+
 // Match component layout
 .match {
   .match-header {
@@ -117,22 +132,15 @@ body {
       flex-grow: 1;
       border-left: 1px solid lightgray;
       border-right: 1px solid lightgray;
-      padding-left: 20px;
+      padding-left: $defaultPadding;
     }
     .timestamp {
       width: 100px;
-      padding-left: 20px;
+      padding-left: $defaultPadding;
     }
   }
 
   .match-details {
     border-top: 1px solid lightgray;
-  }
-}
-
-.player-details {
-  .player-avatar {
-    width: 170px;
-    height: 170px;
   }
 }
