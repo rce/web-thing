@@ -4,7 +4,7 @@ $fontColor: #333;
 $backgroundColor: #f7f7f7;
 $hilightColor: #eee;
 
-$sidebarWidth: 200px;
+$sidebarWidth: 300px;
 $searchItemHeight: 32px;
 
 body {
@@ -78,6 +78,10 @@ body {
   }
 }
 
+.main-content {
+  margin-left: $sidebarWidth;
+}
+
 .match-history {
   .match {
     border: 1px solid #eee;
@@ -99,8 +103,31 @@ body {
   .loss { color: red }
 }
 
-.main-content {
-  margin-left: $sidebarWidth;
+// Match component layout
+.match {
+  .match-header {
+    display: flex;
+    flex-direction: row;
+
+    .result {
+      width: 100px;
+      text-align: center;
+    }
+    .match-name {
+      flex-grow: 1;
+      border-left: 1px solid lightgray;
+      border-right: 1px solid lightgray;
+      padding-left: 20px;
+    }
+    .timestamp {
+      width: 100px;
+      padding-left: 20px;
+    }
+  }
+
+  .match-details {
+    border-top: 1px solid lightgray;
+  }
 }
 
 .player-details {

@@ -1,5 +1,6 @@
 const React = require("karet")
 const Kefir = require("kefir")
+const {Atom} = require("kefir.atom")
 const U = require("karet.util")
 const R = require("ramda")
 
@@ -21,6 +22,7 @@ const MatchList = ({playerId}) => {
 const Match = ({playerId, matchId}) => {
   const match = matchId.flatMapLatest(matchId => FaceitClient.getMatch(matchId))
     .toProperty(() => undefined)
+  const isOpen = new Atom(false)
 
   const team1 = U.view(["teams", "faction1"], match)
   const team2 = U.view(["teams", "faction2"], match)
@@ -38,13 +40,30 @@ const Match = ({playerId, matchId}) => {
       {U.ifElse(
         match.map(R.isNil),
         <Spinner />,
-        <div>
-          <p>
-            <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
-          </p>
-          <p>{winOrLoss}</p>
-          <p>{U.view(["started_at", formatTime], match)}</p>
+        <div onClick={() => isOpen.modify(R.not)}>
+          <div className="match-header">
+            <div className="result">
+              <p>{winOrLoss}</p>
+            </div>
+            <div className="match-name">
+              <p>
+                <TeamName team={team1} /> vs <TeamName team={team2} /> ({U.view("competition_name", match)})
+              </p>
+            </div>
+            <div className="timestamp">
+              <p>{U.view(["started_at", formatTime], match)}</p>
+            </div>
+          </div>
+          {U.when(isOpen, <MatchDetails match={match} />)}
         </div>)}
+    </div>
+  )
+}
+
+const MatchDetails = ({match}) => {
+  return (
+    <div className="match-details">
+      <pre>{U.stringify(match, null, 2)}</pre>
     </div>
   )
 }
