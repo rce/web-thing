@@ -34,7 +34,7 @@
     "luxon": "1.11.4",
     "partial.lenses": "14.17.0",
     "path-to-regexp": "3.0.0",
-    "ramda": "0.26.1",
+    "ramda": "0.27.0",
     "react": "16.12.0",
     "react-dom": "16.12.0"
   }
