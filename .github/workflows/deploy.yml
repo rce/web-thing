@@ -1,0 +1,25 @@
+name: Deploy site
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1.4.0
+        with:
+          node-version: 13.8
+
+      - run: |
+          npm ci
+          npm run build
+
+          if git add docs/; then
+            git -c user.name="Github Actions" -c user.email="<>" commit -m "Build page"
+            git push origin HEAD:${{ github.ref }}
+          fi

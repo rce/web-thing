@@ -1,0 +1,16 @@
+name: Build site
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1.4.0
+        with:
+          node-version: 13.8
+
+      - run: npm ci
+      - run: npm run build
