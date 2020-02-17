@@ -36,6 +36,6 @@
     "path-to-regexp": "3.0.0",
     "ramda": "0.26.1",
     "react": "16.8.4",
-    "react-dom": "16.8.4"
+    "react-dom": "16.12.0"
   }
 }
