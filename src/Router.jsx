@@ -1,7 +1,7 @@
 const React = require("karet")
 const {Atom} = require("kefir.atom")
 const R = require("ramda")
-const pathToRegexp = require("path-to-regexp")
+const { pathToRegexp } = require("path-to-regexp")
 
 const RouterContext = React.createContext()
 
