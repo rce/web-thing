@@ -1,6 +1,6 @@
 const L = require("partial.lenses")
 
-const DefaultAvatar = require("../assets/default_avatar.jpg")
+const DefaultAvatar = require("../assets/default_avatar.jpg").default
 
 const avatarLens = [
   L.prop("avatar"),
