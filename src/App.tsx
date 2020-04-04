@@ -66,7 +66,17 @@ function Search() {
   // TODO real scroll events
   const loadMoreEvents$ = useObservable(inputs$ => inputs$.pipe(
     pluckFirst,
-    flatMap(ref => fromEvent(ref.current!, 'scroll')),
+    flatMap(ref => fromEvent(ref.current!, "scroll")),
+    map(event => {
+      if (!event.target) throw Error("fug")
+      const node = event.target as HTMLUListElement
+      const distanceToBottomBeforeLoadingMore = 500
+      return {
+        scrollTop: node.scrollTop,
+        loadMorePoint: Math.max(0, node.scrollHeight - node.clientHeight - distanceToBottomBeforeLoadingMore),
+      }
+    }),
+    filter(({ scrollTop, loadMorePoint }) => scrollTop > loadMorePoint),
     throttleTime(1000)
   ), [searhResultsListRef])
 
