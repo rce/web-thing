@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "alwaysStrict": false,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "lib": ["es2017", "dom"],
+    "sourceMap": true,
+    "strict": true
+  },
+  "include": ["src"]
+}

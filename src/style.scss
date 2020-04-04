@@ -43,7 +43,7 @@ body {
 
   // Vertically align text in search results by setting layout
   // with flex and setting proper line-height
-  .search-results .search-result {
+  .search-results .search-result a {
     display: flex;
     height: $searchItemHeight;
     .nickname {

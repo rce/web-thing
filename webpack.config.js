@@ -57,9 +57,7 @@ const productionConfiguration = {
 
 const commonConfiguration = env => {
   return {
-    entry: {
-      app: `${srcDir}/App.jsx`,
-    },
+    entry: `${srcDir}/App.tsx`,
     output: {
       filename: isLocal(env) ? "bundle.js" : "bundle.[contenthash].js",
       path: distDir
@@ -67,19 +65,8 @@ const commonConfiguration = env => {
     module: {
       rules: [
         {
-          test: /\.jsx?/,
-          use: [
-            {
-              loader: "babel-loader",
-              options: {
-                presets: [
-                  "@babel/preset-env",
-                  "@babel/preset-react",
-                ]
-              }
-            },
-            "eslint-loader"
-          ],
+          test: /\.tsx?$/,
+          use: "ts-loader",
           exclude: /node_modules/
         },
         {
