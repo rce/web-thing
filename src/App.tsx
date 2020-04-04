@@ -1,27 +1,37 @@
-import React, {useState} from "react"
+import React, {useRef, useState} from "react"
 import {render} from "react-dom"
-import {pluckFirst, useObservable, useObservableState} from "observable-hooks"
-import {debounceTime, filter, map, switchMap} from "rxjs/operators"
+import {pluckFirst, useObservable, useObservableState, useSubscription} from "observable-hooks"
+import {
+  debounceTime,
+  filter,
+  flatMap,
+  map,
+  mergeMap,
+  scan,
+  startWith,
+  switchMap,
+  throttleTime
+} from "rxjs/operators"
 import {
   getMatch,
   getMatchHistory,
   getPlayer,
   GetSearchPlayersResponse$Player,
   searchPlayer,
-  GetSearchPlayersResponse,
-  GetMatchResponse$MatchV2, GetMatchHistoryResponse$Faction, GetMatchResponse$MatchV2$Faction, GetMatchResponse$MatchV1
+  GetMatchResponse$MatchV2,
+  GetMatchResponse$MatchV2$Faction,
+  GetMatchResponse$MatchV1,
+  GetPlayerResponse
 } from "./FaceitApi.ts"
 import {DateTime} from "luxon"
 
 import DefaultAvatar from "../assets/default_avatar.jpg"
 
-console.log(require("../assets/default_avatar.jpg"))
-
 import "./style.scss"
 import {HashRouter, Link, Route, useParams} from "react-router-dom"
+import {fromEvent, Observable, OperatorFunction, pipe} from "rxjs"
 
 function App() {
-  const [player, setPlayer] = useState<GetSearchPlayersResponse$Player | undefined>(undefined)
   return (
     <HashRouter>
       <Search />
@@ -34,28 +44,59 @@ function App() {
   )
 }
 
-function Search() {
-  const [input, setInput] = useState('asd')
+const logObservable = (observable$: Observable<any>, name: string) =>
+  useSubscription(observable$, v => console.log(name, v))
 
-  const results$ = useObservable(
+function Search() {
+  const PAGE_SIZE = 100
+
+  const searhResultsListRef = useRef<HTMLUListElement | null>(null)
+
+  const [input, setInput] = useState('asd')
+  const searchTerm$: Observable<string> = useObservable(
     inputs$ => inputs$.pipe(
       pluckFirst,
       filter(input => input.length >= 3),
-      debounceTime(300),
-      switchMap(input => searchPlayer(input)),
-      map((response: GetSearchPlayersResponse) => response.items)
+      debounceTime(300)
     ),
     [input]
   )
+  logObservable(searchTerm$, "searchTerm$")
+
+  // TODO real scroll events
+  const loadMoreEvents$ = useObservable(inputs$ => inputs$.pipe(
+    pluckFirst,
+    flatMap(ref => fromEvent(ref.current!, 'scroll')),
+    throttleTime(1000)
+  ), [searhResultsListRef])
+
+  const countEvents = (): OperatorFunction<unknown, number> =>
+    pipe(scan((acc, _) => acc + 1, 0), startWith(0))
+  const concatEvents = <T extends unknown>(): OperatorFunction<T[], T[]> =>
+    scan((acc: T[], next) => acc.concat(next), [])
+
+  const results$ = useObservable(() => searchTerm$.pipe(
+    switchMap((searchTerm: string) =>
+      loadMoreEvents$.pipe(
+        countEvents(),
+        mergeMap((page: number): Observable<GetSearchPlayersResponse$Player[]> =>
+          searchPlayer(searchTerm, page * PAGE_SIZE, PAGE_SIZE).pipe(map(_ => _.items))
+        ),
+        concatEvents()
+      )
+    )
+  ))
+  logObservable(results$, "results")
+
   const results = useObservableState(results$, [])
 
   return (
     <div className="search-form">
       <input type="text" value={input} onChange={e => setInput(e.currentTarget.value)} />
 
-      <ul className="search-results">
-        {results.map(result => {
-          return <SearchResultPlayer result={result} key={result.player_id} />
+      <ul className="search-results" ref={searhResultsListRef}>
+        {results.map((result, idx) => {
+          return <SearchResultPlayer result={result} key={result.player_id + idx} />
         })}
       </ul>
     </div>
@@ -84,33 +125,34 @@ function PlayerDetails() {
 
   const [showJson, setShowJson] = useState(false)
 
-  const player = useObservableState(player$, undefined)
+  const player: GetPlayerResponse | undefined = useObservableState<GetPlayerResponse>(player$)
 
-  if (!player || playerId !== player.player_id) {
-    return <p>Loading...</p>
-  }
-  return (
-    <>
-      <div className="player">
-        <img className="player-avatar" src={player.avatar === "" ? DefaultAvatar : player.avatar} />
-        <div className="player-info">
-          <h2>{player.nickname} ({player.country})</h2>
-          <ul>
-            <li><a href={`https://www.faceit.com/en/players/${player.nickname}`}>FACEIT profile</a></li>
-            {player.steam_id_64 && <li><a href={`https://steamcommunity.com/profiles/${player.steam_id_64}`}>Steam profile</a></li>}
-            {player.games?.csgo?.faceit_elo && <li>CS:GO elo {player.games.csgo.faceit_elo}</li>}
-          </ul>
+  if (!player || player.player_id !== playerId) {
+    return (<p>Loading...</p>)
+  } else {
+    return (
+      <>
+        <div className="player">
+          <img className="player-avatar" src={player.avatar === "" ? DefaultAvatar : player.avatar}/>
+          <div className="player-info">
+            <h2>{player.nickname} ({player.country})</h2>
+            <ul>
+              <li><a href={`https://www.faceit.com/en/players/${player.nickname}`}>FACEIT profile</a></li>
+              {player.steam_id_64 && <li><a href={`https://steamcommunity.com/profiles/${player.steam_id_64}`}>Steam profile</a></li>}
+              {player.games?.csgo?.faceit_elo && <li>CS:GO elo {player.games.csgo.faceit_elo}</li>}
+            </ul>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <button onClick={() => setShowJson(!showJson)}>Show JSON</button>
-        {showJson && <DebugValue name="player" value={player} />}
-      </div>
+        <div>
+          <button onClick={() => setShowJson(!showJson)}>Show JSON</button>
+          {showJson && <DebugValue name="player" value={player} />}
+        </div>
 
-      <MatchList playerId={player.player_id} />
-    </>
-  )
+        <MatchList playerId={player.player_id} />
+      </>
+    )
+  }
 }
 
 function MatchList({ playerId }: { playerId: string }) {

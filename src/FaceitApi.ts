@@ -24,8 +24,13 @@ export interface GetSearchPlayersResponse$Player {
   avatar: string
 }
 
-export function searchPlayer(nickname: string): Observable<GetSearchPlayersResponse> {
-  return callApi("GET", "/search/players", { nickname, limit: "10", game: "csgo" })
+export function searchPlayer(nickname: string, offset: number, limit: number): Observable<GetSearchPlayersResponse> {
+  return callApi("GET", "/search/players", {
+    nickname,
+    game: "csgo",
+    offset: String(offset),
+    limit: String(limit),
+  })
     .pipe(flatMap(response => from(response.json())))
 }
 
