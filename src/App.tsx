@@ -38,7 +38,7 @@ function App() {
 }
 
 function Search() {
-  const PAGE_SIZE = 20
+  const PAGE_SIZE = 100
 
   const searchResultsElementRef = useRef<HTMLUListElement>(null)
 
