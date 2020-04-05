@@ -1,17 +1,14 @@
-import React, {useRef, useState} from "react"
+import React, {useEffect, useRef, useState} from "react"
 import {render} from "react-dom"
 import {pluckFirst, useObservable, useObservableState, useSubscription} from "observable-hooks"
-import {
-  debounceTime,
-  filter,
-  flatMap,
-  map,
-  mergeMap,
-  scan,
-  startWith,
-  switchMap,
-  throttleTime
-} from "rxjs/operators"
+import {debounceTime, filter, flatMap, map, scan, switchMap, takeWhile} from "rxjs/operators"
+import {DateTime} from "luxon"
+
+import DefaultAvatar from "../assets/default_avatar.jpg"
+
+import {HashRouter, Link, Route, useParams} from "react-router-dom"
+import {concat, EMPTY, identity, Observable, of, OperatorFunction} from "rxjs"
+
 import {
   getMatch,
   getMatchHistory,
@@ -21,15 +18,16 @@ import {
   GetMatchResponse$MatchV2,
   GetMatchResponse$MatchV2$Faction,
   GetMatchResponse$MatchV1,
-  GetPlayerResponse
+  GetMatchHistoryResponse$Match,
+  GetMatchHistoryResponse,
+  GetMatchResponse,
+  GetPlayerResponse,
+  GetSearchPlayersResponse
 } from "./FaceitApi.ts"
-import {DateTime} from "luxon"
-
-import DefaultAvatar from "../assets/default_avatar.jpg"
+import {fromScrollEvents, ScrollPosition} from "./InfiniteScroll.ts"
+import {DebugValue, tapLog} from "./Util.tsx"
 
 import "./style.scss"
-import {HashRouter, Link, Route, useParams} from "react-router-dom"
-import {fromEvent, Observable, OperatorFunction, pipe} from "rxjs"
 
 function App() {
   return (
@@ -44,73 +42,97 @@ function App() {
   )
 }
 
-const logObservable = (observable$: Observable<any>, name: string) =>
-  useSubscription(observable$, v => console.log(name, v))
-
 function Search() {
-  const PAGE_SIZE = 100
+  const PAGE_SIZE = 20
 
-  const searhResultsListRef = useRef<HTMLUListElement | null>(null)
+  const searchResultsElementRef = useRef<HTMLUListElement>(null)
 
-  const [input, setInput] = useState('asd')
+  const [scrollPosition, setScrollPosition] = useState<ScrollPosition>()
+  useEffect(() => {
+    const sub = fromScrollEvents(searchResultsElementRef)
+      .subscribe((e: ScrollPosition) => setScrollPosition(e))
+    return () => sub.unsubscribe()
+  }, [searchResultsElementRef])
+
+  const [input, setInput] = useState("")
   const searchTerm$: Observable<string> = useObservable(
     inputs$ => inputs$.pipe(
       pluckFirst,
       filter(input => input.length >= 3),
-      debounceTime(300)
+      debounceTime(300),
+      tapLog("searchTerm")
     ),
     [input]
   )
-  logObservable(searchTerm$, "searchTerm$")
 
-  // TODO real scroll events
-  const loadMoreEvents$ = useObservable(inputs$ => inputs$.pipe(
-    pluckFirst,
-    flatMap(ref => fromEvent(ref.current!, "scroll")),
-    map(event => {
-      if (!event.target) throw Error("fug")
-      const node = event.target as HTMLUListElement
-      const distanceToBottomBeforeLoadingMore = 500
-      return {
-        scrollTop: node.scrollTop,
-        loadMorePoint: Math.max(0, node.scrollHeight - node.clientHeight - distanceToBottomBeforeLoadingMore),
-      }
-    }),
-    filter(({ scrollTop, loadMorePoint }) => scrollTop > loadMorePoint),
-    throttleTime(1000)
-  ), [searhResultsListRef])
+  const loadMoreEvents$ = useObservable(inputs$ =>
+    inputs$.pipe(
+      pluckFirst,
+      // Skip undefined positions
+      flatMap(optPosition => optPosition ? of(optPosition) : EMPTY),
+      filter(({scrollTop, scrollTopMax}: ScrollPosition) => {
+        const distanceToBottomBeforeLoadingMore = 500
+        const loadMorePoint = Math.max(0, scrollTopMax - distanceToBottomBeforeLoadingMore)
+        return scrollTop >= loadMorePoint
+      })
+    ),
+    [scrollPosition]
+  )
 
-  const countEvents = (): OperatorFunction<unknown, number> =>
-    pipe(scan((acc, _) => acc + 1, 0), startWith(0))
-  const concatEvents = <T extends unknown>(): OperatorFunction<T[], T[]> =>
-    scan((acc: T[], next) => acc.concat(next), [])
+  function countFrom<T extends unknown>(init: number): OperatorFunction<T, number> {
+    return scan((acc, inc) => acc + 1, init - 1)
+  }
 
-  const results$ = useObservable(() => searchTerm$.pipe(
-    switchMap((searchTerm: string) =>
-      loadMoreEvents$.pipe(
-        countEvents(),
-        mergeMap((page: number): Observable<GetSearchPlayersResponse$Player[]> =>
-          searchPlayer(searchTerm, page * PAGE_SIZE, PAGE_SIZE).pipe(map(_ => _.items))
-        ),
-        concatEvents()
-      )
-    )
-  ))
-  logObservable(results$, "results")
+  function concatArraysFromStream<T extends unknown>(): OperatorFunction<T[], T[]> {
+    return scan((acc: T[], next) => acc.concat(next), [])
+  }
 
-  const results = useObservableState(results$, [])
+  const results$: Observable<GetSearchPlayersResponse$Player[]> = useObservable(
+    inputs$ => inputs$.pipe(pluckFirst, flatMap(identity)).pipe(
+      // Generate stream of result batches
+      switchMap((searchTerm: string): Observable<GetSearchPlayersResponse$Player[]> => {
+        const pageToLoad$ = concat(of(1), loadMoreEvents$.pipe(countFrom(2)))
+        const resultPages$: Observable<GetSearchPlayersResponse> = pageToLoad$.pipe(
+          flatMap(page => searchPlayer(searchTerm, page * PAGE_SIZE, PAGE_SIZE)),
+          takeWhile(response  => response.items.length > 0)
+        )
+        return resultPages$.pipe(
+          // Concatenate and dediplicate batches
+          map(response => response.items),
+          concatArraysFromStream(),
+          map(deduplicateResults)
+        )
+      })
+    ),
+    [searchTerm$]
+  )
+
+  const [results, setResults] = useState<GetSearchPlayersResponse$Player[]>([])
+  useSubscription(results$, setResults)
 
   return (
     <div className="search-form">
-      <input type="text" value={input} onChange={e => setInput(e.currentTarget.value)} />
+      <input type="text" onChange={e => void setInput(e.currentTarget.value)} />
 
-      <ul className="search-results" ref={searhResultsListRef}>
-        {results.map((result, idx) => {
-          return <SearchResultPlayer result={result} key={result.player_id + idx} />
+      <ul className="search-results" ref={searchResultsElementRef}>
+        {results.map((result) => {
+          return <SearchResultPlayer result={result} key={result.player_id} />
         })}
       </ul>
     </div>
   )
+}
+
+function deduplicateResults(results: GetSearchPlayersResponse$Player[]): GetSearchPlayersResponse$Player[] {
+  const idSet = new Set()
+  const noDuplicates: GetSearchPlayersResponse$Player[] = []
+  results.forEach(r => {
+    if (!idSet.has(r.player_id)) {
+      idSet.add(r.player_id)
+      noDuplicates.push(r)
+    }
+  })
+  return noDuplicates
 }
 
 function SearchResultPlayer({ result }: { result: GetSearchPlayersResponse$Player }) {
@@ -169,7 +191,7 @@ function MatchList({ playerId }: { playerId: string }) {
   const matches$ = useObservable(inputs$ => inputs$.pipe(
     pluckFirst,
     switchMap(playerId => getMatchHistory(playerId, "csgo")),
-    map(_ => _.items)
+    map(response => response.items)
   ), [playerId])
   const matches = useObservableState(matches$, [])
 
@@ -190,7 +212,7 @@ function Match({ playerId, matchId }: { playerId: string, matchId: string }) {
     switchMap(matchId => getMatch(matchId))
   ), [matchId])
 
-  const match = useObservableState(match$, undefined)
+  const match = useObservableState(match$)
 
   if (!match || matchId !== match.match_id) {
     return <p>Loading...</p>
@@ -276,12 +298,6 @@ function MatchV2Details({ match }: { match: GetMatchResponse$MatchV2 }) {
 
 function formatTime(time: number): string {
   return DateTime.fromSeconds(time).toRelative()!
-}
-
-function DebugValue({ name, value }: { name: string, value: any }) {
-  return (
-    <pre>{name} === {JSON.stringify(value, null, 2)}</pre>
-  )
 }
 
 render(<App />, document.getElementById("app"))

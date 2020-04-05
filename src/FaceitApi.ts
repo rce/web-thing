@@ -87,38 +87,40 @@ export function getPlayer(playerId: string): Observable<GetPlayerResponse> {
 }
 
 export interface GetMatchHistoryResponse {
-  items: Array<{
-    match_id: string
-    game_id: string
-    region: string
-    match_type: string
-    game_mode: string
-    max_players: number
-    teams_size: number
-    teams: {
-      faction1: GetMatchHistoryResponse$Faction
-      faction2: GetMatchHistoryResponse$Faction
-    }
-    playing_players: string[]
-    competition_id: string
-    competition_name: string
-    organizer_id: string
-    status: string
-    started_at: number
-    finished_at: number
-    results: {
-      winner: 'faction1' | 'faction2'
-      score: {
-        faction1: number
-        faction2: number
-      }
-    }
-    faceit_url: string
-  }>
+  items: Array<GetMatchHistoryResponse$Match>
   start: number
   end: number
   from: number
   to: number
+}
+
+export interface GetMatchHistoryResponse$Match {
+  match_id: string
+  game_id: string
+  region: string
+  match_type: string
+  game_mode: string
+  max_players: number
+  teams_size: number
+  teams: {
+    faction1: GetMatchHistoryResponse$Faction
+    faction2: GetMatchHistoryResponse$Faction
+  }
+  playing_players: string[]
+  competition_id: string
+  competition_name: string
+  organizer_id: string
+  status: string
+  started_at: number
+  finished_at: number
+  results: {
+    winner: 'faction1' | 'faction2'
+    score: {
+      faction1: number
+      faction2: number
+    }
+  }
+  faceit_url: string
 }
 
 export interface GetMatchHistoryResponse$Faction {
@@ -142,7 +144,7 @@ export function getMatchHistory(playerId: string, game: string): Observable<GetM
     .pipe(flatMap(response => from(response.json())))
 }
 
-type GetMatchResponse = GetMatchResponse$MatchV1 | GetMatchResponse$MatchV2
+export type GetMatchResponse = GetMatchResponse$MatchV1 | GetMatchResponse$MatchV2
 
 export interface GetMatchResponse$MatchV1 {
   version: 1
