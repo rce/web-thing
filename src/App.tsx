@@ -1,13 +1,12 @@
 import React, {useEffect, useRef, useState} from "react"
 import {render} from "react-dom"
-import {pluckFirst, useObservable, useObservableState, useSubscription} from "observable-hooks"
-import {debounceTime, filter, flatMap, map, scan, switchMap, takeWhile} from "rxjs/operators"
 import {DateTime} from "luxon"
+import {HashRouter, Link, Route, useParams} from "react-router-dom"
+import {BehaviorSubject, EMPTY, identity, Observable, of, OperatorFunction, zip} from "rxjs"
+import {debounceTime, filter, flatMap, map, scan, startWith, switchMap, tap} from "rxjs/operators"
+import {pluckFirst, useObservable, useObservableState, useSubscription} from "observable-hooks"
 
 import DefaultAvatar from "../assets/default_avatar.jpg"
-
-import {HashRouter, Link, Route, useParams} from "react-router-dom"
-import {concat, EMPTY, identity, Observable, of, OperatorFunction} from "rxjs"
 
 import {
   getMatch,
@@ -18,11 +17,7 @@ import {
   GetMatchResponse$MatchV2,
   GetMatchResponse$MatchV2$Faction,
   GetMatchResponse$MatchV1,
-  GetMatchHistoryResponse$Match,
-  GetMatchHistoryResponse,
-  GetMatchResponse,
-  GetPlayerResponse,
-  GetSearchPlayersResponse
+  GetPlayerResponse
 } from "./FaceitApi.ts"
 import {fromScrollEvents, ScrollPosition} from "./InfiniteScroll.ts"
 import {DebugValue, tapLog} from "./Util.tsx"
@@ -65,7 +60,7 @@ function Search() {
     [input]
   )
 
-  const loadMoreEvents$ = useObservable(inputs$ =>
+  const scrolledNearBottom$ = useObservable(inputs$ =>
     inputs$.pipe(
       pluckFirst,
       // Skip undefined positions
@@ -79,10 +74,6 @@ function Search() {
     [scrollPosition]
   )
 
-  function countFrom<T extends unknown>(init: number): OperatorFunction<T, number> {
-    return scan((acc, inc) => acc + 1, init - 1)
-  }
-
   function concatArraysFromStream<T extends unknown>(): OperatorFunction<T[], T[]> {
     return scan((acc: T[], next) => acc.concat(next), [])
   }
@@ -91,11 +82,24 @@ function Search() {
     inputs$ => inputs$.pipe(pluckFirst, flatMap(identity)).pipe(
       // Generate stream of result batches
       switchMap((searchTerm: string): Observable<GetSearchPlayersResponse$Player[]> => {
-        const pageToLoad$ = concat(of(1), loadMoreEvents$.pipe(countFrom(2)))
-        const resultPages$: Observable<GetSearchPlayersResponse> = pageToLoad$.pipe(
-          flatMap(page => searchPlayer(searchTerm, page * PAGE_SIZE, PAGE_SIZE)),
-          takeWhile(response  => response.items.length > 0)
+        // Because fetching more results both consumes and produces offset$ values we have to use BehaviorSubject
+        // to be able to push new values from wherever.
+        // Simple recursive search with concatMap would work if we always eventually wanted all search results.
+        // However here we want to fetch results only once at start and when scrolling near bottom of the list.
+        const offset$ = new BehaviorSubject<number>(0)
+
+        const searchTrigger$ = scrolledNearBottom$.pipe(startWith())
+        const resultPages$ = zip(offset$, searchTrigger$).pipe(
+          // We only care about the offset value
+          pluckFirst,
+          tapLog("offset"),
+          flatMap(offset => searchPlayer(searchTerm, offset, PAGE_SIZE)),
+          // Publish next offset or complete the stream if no more results are available
+          tap(response => response.items.length === 0 ? offset$.complete() : offset$.next(response.end)),
+          tapLog("resultPages")
         )
+
+        //const resultPages$ = searchRecursive(searchTerm, 0)
         return resultPages$.pipe(
           // Concatenate and dediplicate batches
           map(response => response.items),

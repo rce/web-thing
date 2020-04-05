@@ -1,5 +1,5 @@
 import {fromEvent, interval, merge, Observable} from "rxjs"
-import {debounceTime, distinctUntilChanged, map} from "rxjs/operators"
+import {distinctUntilChanged, map, throttleTime} from "rxjs/operators"
 import {RefObject} from "react"
 
 export interface ScrollPosition {
@@ -26,7 +26,7 @@ function elementScrollChanges<ElementT extends HTMLElement>(element: ElementT): 
     fromEvent(element, "scroll"),
     fromEvent(window, "resize")
   ).pipe(
-    debounceTime(100),
+    throttleTime(200),
     map(() => element)
   )
 }
@@ -38,12 +38,9 @@ function jsonEquals(a: any, b: any) {
 function getScrollPosition<ElementType extends HTMLElement>(e: ElementType): ScrollPosition {
   if (typeof window === "undefined")
     return { scrollTop: 0, scrollTopMax: 0 }
-  const {
-    scrollTop, // y of the top left corner
-    scrollLeft, // x of the top left corner
-    scrollHeight, // height of the whole element if not hidden by scroll
-    clientHeight, // height of the visible part of the scroll
-  } = e
-  const scrollTopMax = e.scrollHeight - e.clientHeight
-  return { scrollTop, scrollTopMax }
+
+  return {
+    scrollTop: e.scrollTop,
+    scrollTopMax: e.scrollHeight - e.clientHeight
+  }
 }
