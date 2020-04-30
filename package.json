@@ -28,7 +28,7 @@
   "dependencies": {
     "html-webpack-plugin": "4.2.1",
     "luxon": "1.23.0",
-    "observable-hooks": "^2.3.4",
+    "observable-hooks": "^2.3.5",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-router-dom": "^5.1.2",
