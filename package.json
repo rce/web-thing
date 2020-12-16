@@ -23,7 +23,7 @@
     "webpack-cli": "4.1.0",
     "webpack-dev-server": "3.11.0",
     "webpack-html-plugin": "0.1.1",
-    "webpack-merge": "5.4.0"
+    "webpack-merge": "5.7.2"
   },
   "dependencies": {
     "html-webpack-plugin": "4.5.0",
