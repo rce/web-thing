@@ -2,7 +2,7 @@ const path = require("path")
 
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
-const merge = require("webpack-merge")
+const { merge } = require("webpack-merge")
 
 const srcDir = path.resolve(__dirname, "src")
 const distDir = path.resolve(__dirname, "docs")
