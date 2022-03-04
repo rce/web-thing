@@ -12,7 +12,7 @@
     "@types/react-dom": "^17.0.3",
     "@types/react-router-dom": "^5.1.7",
     "clean-webpack-plugin": "3.0.0",
-    "css-loader": "5.2.4",
+    "css-loader": "6.7.0",
     "file-loader": "6.2.0",
     "node-sass": "6.0.0",
     "sass-loader": "12.3.0",
